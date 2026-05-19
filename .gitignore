@@ -1,0 +1,29 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Checkpoints & Model Artifacts
+checkpoints/
+*.pth
+*.bin
+*.pt
+*.safetensors
+*.gguf
+
+# Electron
+dist-electron/
+release/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db

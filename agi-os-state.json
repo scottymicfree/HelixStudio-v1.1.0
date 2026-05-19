@@ -1,0 +1,288 @@
+{
+  "rings": {
+    "ring0": {
+      "merkleRoot": "0x44DA8AC8568E4B41",
+      "walSize": 147.75000000000006,
+      "lastAttestedAt": "2026-05-19T17:48:36.369Z",
+      "journal": [
+        "[ATTESTATION] Block verified. Prev: 0x84E0... New: 0xE8A1...",
+        "[ATTESTATION] Block verified. Prev: 0xE8A1... New: 0xF14B...",
+        "[ATTESTATION] Block verified. Prev: 0xF14B... New: 0xDD9D...",
+        "[ATTESTATION] Block verified. Prev: 0xDD9D... New: 0x980F...",
+        "[ATTESTATION] Block verified. Prev: 0x980F... New: 0x24D2...",
+        "[ATTESTATION] Block verified. Prev: 0x24D2... New: 0xD2A2...",
+        "[ATTESTATION] Block verified. Prev: 0xD2A2... New: 0x0F4F...",
+        "[ATTESTATION] Block verified. Prev: 0x0F4F... New: 0x4DCE...",
+        "[ATTESTATION] Block verified. Prev: 0x4DCE... New: 0x27E6...",
+        "[ATTESTATION] Block verified. Prev: 0x27E6... New: 0x7F1D...",
+        "[ATTESTATION] Block verified. Prev: 0x7F1D... New: 0xA6ED...",
+        "[ATTESTATION] Block verified. Prev: 0xA6ED... New: 0xF8E9...",
+        "[ATTESTATION] Block verified. Prev: 0xF8E9... New: 0x6520...",
+        "[ATTESTATION] Block verified. Prev: 0x6520... New: 0xA7D1...",
+        "[ATTESTATION] Block verified. Prev: 0xA7D1... New: 0x23CB...",
+        "[ATTESTATION] Block verified. Prev: 0x23CB... New: 0x631E...",
+        "[ATTESTATION] Block verified. Prev: 0x631E... New: 0xB618...",
+        "[ATTESTATION] Block verified. Prev: 0xB618... New: 0xE379...",
+        "[ATTESTATION] Block verified. Prev: 0xE379... New: 0xA4C2...",
+        "[ATTESTATION] Block verified. Prev: 0xA4C2... New: 0x44DA..."
+      ]
+    },
+    "ring1": {
+      "trainedModels": []
+    },
+    "ring2": {
+      "memoryEntries": [
+        {
+          "id": "mem-001",
+          "type": "Pattern",
+          "content": "Initial Helix-Kernel bootstrap sequence verified.",
+          "timestamp": "2026-05-19T13:24:43.926Z",
+          "links": [
+            "mem-002"
+          ]
+        },
+        {
+          "id": "mem-002",
+          "type": "Observation",
+          "content": "Ring-3 allocation efficiency within nominal parameters.",
+          "timestamp": "2026-05-19T13:24:43.926Z",
+          "links": [
+            "mem-001"
+          ]
+        }
+      ]
+    },
+    "ring3": {
+      "instances": [
+        {
+          "id": "b7876a8f-4468-42ff-86b6-0ea1653a15c7",
+          "name": "Helix-Proto-653",
+          "status": "Idle",
+          "lifecycle": "Undifferentiated",
+          "logs": [
+            "[CORTICAL-GATEWAY] Absolute Perimeter Check: PASSED.",
+            "[CORTICAL-GATEWAY] CAUTION: Anonymous module detected.",
+            "[SYSTEM] Pluripotent stem-cell pool b7876a8f-4468-42ff-86b6-0ea1653a15c7 provisioned in Ring 3.",
+            "[SYSTEM] Awaiting Neuro-Highway context for differentiation.",
+            "[SECURITY] Behavioral monitor initialized for instance scope.",
+            "[SYSTEM] WASM payload size: 0.05 KB detected.",
+            "[HELIX-OS] INTAKE: Neuro-Highway context stream active...",
+            "[HELIX-OS] CONTEXT: \"Initial Helix-Kernel bootstrap sequence verified. | Ring-3 a...\"",
+            "[HELIX-OS] DIFFERENTIATION: Stem-cell evolving into Security Worker.",
+            "[SECURITY] Session established: SES-C54D04AF",
+            "[EXEC] Running specialized task in Security domain.",
+            "[EXEC] JIT Compiling Security module...",
+            "[ERROR] Critical Security failure: WebAssembly.compile(): section (code 0, \"Unknown\") extends past end of the module (length 11, remaining bytes 0) @+54",
+            "[SECURITY] TASK COMPLETE: Initiating full memory scrub...",
+            "[SECURITY] PURGING: Clearing stack, registers, and context heap.",
+            "[SECURITY] SCRUB COMPLETE: Pool returned to undifferentiated state."
+          ],
+          "deployedAt": "2026-05-19T15:25:04.330Z",
+          "wasmBuffer": "AGFzbQEAAAABBwFgAn9/AX8DAgEABwcBA3J1bgAAChYBFAB/AAsiACEDIAEgAigAACIDIAIQAAs=",
+          "attestationToken": "ATT-8661A145",
+          "memoryUsage": 0,
+          "duration": 0.46217000001342967
+        },
+        {
+          "id": "d981c200-fc81-42bc-8966-8364ff7d7873",
+          "name": "Helix-Proto-173",
+          "status": "Undifferentiated",
+          "lifecycle": "Undifferentiated",
+          "logs": [
+            "[CORTICAL-GATEWAY] Absolute Perimeter Check: PASSED.",
+            "[CORTICAL-GATEWAY] CAUTION: Anonymous module detected.",
+            "[SYSTEM] Pluripotent stem-cell pool d981c200-fc81-42bc-8966-8364ff7d7873 provisioned in Ring 3.",
+            "[SYSTEM] Awaiting Neuro-Highway context for differentiation.",
+            "[SECURITY] Behavioral monitor initialized for instance scope.",
+            "[SYSTEM] WASM payload size: 0.05 KB detected."
+          ],
+          "deployedAt": "2026-05-19T15:25:05.251Z",
+          "wasmBuffer": "AGFzbQEAAAABBwFgAn9/AX8DAgEABwcBA3J1bgAAChYBFAB/AAsiACEDIAEgAigAACIDIAIQAAs=",
+          "attestationToken": "ATT-6C329E37",
+          "memoryUsage": 0
+        },
+        {
+          "id": "b887813e-3190-40e6-9959-dcec0fd7e09b",
+          "name": "Helix-Proto-362",
+          "status": "Undifferentiated",
+          "lifecycle": "Undifferentiated",
+          "logs": [
+            "[CORTICAL-GATEWAY] Absolute Perimeter Check: PASSED.",
+            "[CORTICAL-GATEWAY] CAUTION: Anonymous module detected.",
+            "[SYSTEM] Pluripotent stem-cell pool b887813e-3190-40e6-9959-dcec0fd7e09b provisioned in Ring 3.",
+            "[SYSTEM] Awaiting Neuro-Highway context for differentiation.",
+            "[SECURITY] Behavioral monitor initialized for instance scope.",
+            "[SYSTEM] WASM payload size: 0.05 KB detected."
+          ],
+          "deployedAt": "2026-05-19T15:25:05.965Z",
+          "wasmBuffer": "AGFzbQEAAAABBwFgAn9/AX8DAgEABwcBA3J1bgAAChYBFAB/AAsiACEDIAEgAigAACIDIAIQAAs=",
+          "attestationToken": "ATT-2E5FB0E2",
+          "memoryUsage": 0
+        }
+      ]
+    }
+  },
+  "helixCore": {
+    "identity": {
+      "name": "Helix",
+      "version": "3.0.0-Security-Immutable",
+      "origin": "Cortical Gateway Architecture"
+    },
+    "evolution": {
+      "level": 1,
+      "points": 0,
+      "nextLevelAt": 100,
+      "unlockedCapabilities": [
+        "Context Awareness",
+        "Core Logic",
+        "Immutable Security"
+      ],
+      "maturity": "Seedling"
+    },
+    "memory": {
+      "userPreferences": {
+        "theme": "dark",
+        "preferredModels": [
+          "Llama-3",
+          "Claude-3"
+        ]
+      },
+      "codingStyle": "functional-minimalist",
+      "successfulStrategies": [],
+      "pastEvolutions": [],
+      "lastInteraction": "2026-05-19T13:24:43.926Z"
+    },
+    "initiatives": [
+      {
+        "id": "init_1",
+        "title": "Neuro-Highway Optimization",
+        "description": "I've detected latency in the spectral visualizer. Should I refactor the data flow for 60fps coherence?",
+        "status": "active",
+        "category": "Performance"
+      }
+    ],
+    "initiativeMode": true,
+    "swarm": {
+      "agents": []
+    },
+    "tools": [
+      {
+        "id": "fs_read",
+        "name": "FS Read",
+        "description": "Read file system structure",
+        "category": "FileSystem"
+      },
+      {
+        "id": "fs_write",
+        "name": "FS Write",
+        "description": "Apply atomic code edits",
+        "category": "FileSystem"
+      },
+      {
+        "id": "exec_node",
+        "name": "Node Exec",
+        "description": "Execute sandboxed TS/JS",
+        "category": "Execution"
+      },
+      {
+        "id": "web_search",
+        "name": "Neural Search",
+        "description": "Retrieve real-world context",
+        "category": "Network"
+      }
+    ],
+    "adapters": [
+      {
+        "id": "github",
+        "name": "GitHub",
+        "description": "Primary source control & CI/CD deployment",
+        "status": "Disconnected",
+        "icon": "Github",
+        "type": "SourceControl",
+        "features": [
+          "Auto-Commit",
+          "Remote Sync",
+          "Branch Management"
+        ]
+      }
+    ],
+    "security": {
+      "gatewayLogs": [],
+      "merkleRoot": "0x44DA8AC8568E4B41",
+      "walHash": "SHA-256:0x123",
+      "lastIntegrityCheck": "2026-05-19T17:48:36.369Z",
+      "isQuarantined": false
+    },
+    "userProfile": {
+      "detectedSkillLevel": "Architect",
+      "focusAreas": [
+        "AI Agents",
+        "WASM Runtimes"
+      ],
+      "collaborationStyle": "Recursive"
+    }
+  },
+  "terminalLogs": [
+    "\u001b[32m[SYSTEM]\u001b[0m Helix-OS v3.0 Core Booting...",
+    "\u001b[32m[RING-0]\u001b[0m Immutable Security Layer: ACTIVE",
+    "\u001b[32m[CORTICAL-GATEWAY]\u001b[0m Absolute Perimeter Guard: ONLINE"
+  ],
+  "telemetry": {
+    "coherence": 0.851,
+    "entropy": 0.22949999999999998,
+    "aggregateThroughput": 1,
+    "activeWorkerCount": 3,
+    "securityScore": 0.99,
+    "healthSong": [
+      0.3449312021050084,
+      0.4693135334391962,
+      0.5678711155997642,
+      0.6419744787029504,
+      0.5755885160801959,
+      0.42402203915707204,
+      0.3637397971308471,
+      0.45251298223677483,
+      0.5492665022101042,
+      0.6501665844683279,
+      0.6436369266084946,
+      0.4890333661672449,
+      0.4099831383926046,
+      0.395056124118627,
+      0.5168592994867015,
+      0.645270828649758,
+      0.6598623002975441,
+      0.5371813312995937,
+      0.44029810751193166,
+      0.41343756228948303,
+      0.4858332120678037,
+      0.635353777134045,
+      0.7094960784067286,
+      0.6214715323171152,
+      0.43841348060056023,
+      0.4070948187064871,
+      0.47008228038578304,
+      0.6052348396519904,
+      0.7196305183367864,
+      0.6220070610111385,
+      0.48772930740360054,
+      0.43243132596800843,
+      0.476340838630159,
+      0.6148106880931594,
+      0.7335388509468987,
+      0.6669482201915365,
+      0.5782827124479304,
+      0.4297000380556303,
+      0.46023093883946414,
+      0.5633606296777456,
+      0.7284227281564439,
+      0.7031187701689436,
+      0.6315529969285074,
+      0.5015396444319083,
+      0.4224311716804663,
+      0.5297822460951629,
+      0.6998796347949401,
+      0.7262794253275783
+    ],
+    "lastTick": "2026-05-19T17:50:36.473Z"
+  }
+}
