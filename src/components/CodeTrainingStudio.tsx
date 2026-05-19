@@ -137,57 +137,97 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
   ]);
   const [isEventModeActive, setIsEventModeActive] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
-    { role: 'assistant', content: "Hello! I'm your Helix AI Assistant. How can I help you optimize your model today?" }
+    { role: 'assistant', content: "SYSTEM_MODE=ENGINEERING. Helix Assistant initialized. Analysis of current training telemetry and architecture topology ready for query." }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState<PersonaId>('prime');
+
+  // Advanced LoRA Configuration State
+  const [loraConfig, setLoraConfig] = useState({
+    rank: 16,
+    alpha: 32,
+    dropout: 0.05,
+    learningRate: 1.5e-4,
+    targetModules: ['q_proj', 'v_proj'],
+    precision: 'bf16' as 'fp16' | 'bf16' | 'fp32',
+    batchSize: 4
+  });
+
+  // VRAM Estimator logic
+  const calculateEstimatedVRAM = () => {
+    let baseModelSize = 14.2; 
+    if (currentProject.model?.includes('70B')) baseModelSize = 42.5;
+    if (currentProject.model?.includes('Phi')) baseModelSize = 4.2;
+    
+    const rankFactor = (loraConfig.rank / 64) * (loraConfig.targetModules.length / 4) * 0.8;
+    const batchFactor = loraConfig.batchSize * 0.15;
+    const precisionFactor = loraConfig.precision === 'fp32' ? 1.8 : loraConfig.precision === 'bf16' ? 1.0 : 0.8;
+    
+    const estimated = (baseModelSize + rankFactor + batchFactor) * precisionFactor;
+    return Math.max(2.1, Math.min(640, estimated));
+  };
+
+  const currentVram = (isTraining && metrics.length > 0 && metrics[metrics.length - 1].vram) 
+    ? metrics[metrics.length - 1].vram 
+    : calculateEstimatedVRAM();
+
+  const vramMax = currentProject.model?.includes('70B') ? 80 * 8 : 80; 
+  const vramPercentage = (currentVram / vramMax) * 100;
   
   const handleSendMessage = useCallback((content: string) => {
     setChatMessages(prev => [...prev, { role: 'user', content }]);
     setIsTyping(true);
     
-    // Simulate AI thinking and response
+    // Simulate AI thinking and response following Hard Identity Contract
     setTimeout(() => {
       let response = "";
-      const persona = PERSONAS.find(p => p.id === selectedPersona) || PERSONAS[0];
+      // const persona = PERSONAS.find(p => p.id === selectedPersona) || PERSONAS[0];
 
+      // Engineering Viewpoint Initializations
       if (selectedPersona === 'prime') {
-        response = "I've analyzed the system telemetry. ";
+        response = "System telemetry analysis complete. ";
       } else if (selectedPersona === 'artisan') {
-        response = "Architecture review initialized. Focus: efficiency and structural integrity. ";
+        response = "Static architecture review completed. Registry integrity: verified. ";
       } else if (selectedPersona === 'sage') {
-        response = "Training dynamics scanned. Hyperparameter gradient checked. ";
+        response = "Training dynamics audit finished. Hyperparameter gradient evaluation: nominal. ";
       } else if (selectedPersona === 'architect') {
-        response = "Agentic loop analysis in progress. Reason-Act-Observe cycle verified. ";
+        response = "Agentic topology scan complete. Reason-Act-Observe loops: operational. ";
       } else if (selectedPersona === 'ruthless') {
-        response = "Brutal optimization sweep active. Detecting and removing bloat... ";
+        response = "Efficiency audit executed. Resource overhead identified. ";
       }
 
       let suggestionType: string | undefined;
 
+      // Reality Anchor Logic
+      const isAbstract = !content.toLowerCase().includes('fix') && !content.toLowerCase().includes('run');
+
       if (content.toLowerCase().includes('explain')) {
         if (selectedPersona === 'artisan') {
-          response += `In ${activeTab}, the modular structure is solid but could benefit from stricter typing in the data loader.`;
+          response += `The modular pattern in ${activeTab} provides sufficient abstraction, though strict type enforcement in the data loader is recommended for production parity.`;
         } else if (selectedPersona === 'sage') {
-          response += `The ${activeTab.includes('model') ? 'architecture' : 'training loop'} in ${activeTab} is currently configured for standard AdamW. Have you considered Lion for faster convergence?`;
+          response += `The current AdamW configuration for ${activeTab} is functional. Evaluation of the Lion optimizer suggests potential convergence acceleration.`;
         } else {
-          response += `In ${activeTab}, you're defining the ${activeTab.includes('model') ? 'architecture' : 'training loop'}. The current implementation uses BF16 precision.`;
+          response += `The ${activeTab.includes('model') ? 'architecture' : 'training loop'} definition in ${activeTab} utilizes BF16 precision. Current VRAM allocation: ${currentVram.toFixed(1)}GB.`;
         }
       } else if (content.toLowerCase().includes('optimize')) {
         if (selectedPersona === 'ruthless') {
-          response = `UNNECESSARY OVERHEAD DETECTED. Drop batch size to 2, crank learning rate to 5e-4. No more fluff.`;
+          response = `RESOURCE OVERHEAD DETECTED. Recommendation: Reduce batch size to 2, learning rate adjustment to 5e-4. Redundant logging modules: REMOVED.`;
         } else {
-          response = `Based on your current VRAM usage of ${vramUsage}%, I recommend increasing your gradient accumulation steps to 8. This will stabilize training without requiring more memory.`;
+          response = `VRAM utilization in the current simulation layer is ${vramPercentage.toFixed(1)}%. Increasing gradient accumulation steps to 8 is recommended to stabilize the training cycle.`;
         }
         suggestionType = 'optimize';
+      } else if (content.toLowerCase().includes('is this real') || content.toLowerCase().includes('conscious')) {
+        response = `RESPONSE_MODE=ENGINEERING. This environment is a visual simulation layer. Functional consciousness is not a system property. All Observed behaviors are executed via the Topology Mapping Module.`;
       } else if (content.toLowerCase().includes('agentic')) {
-        response = `To make this more agentic, I recommend adding a 'reasoning_path' field to your training data and enabling the 'Thought' token in your tokenizer config.`;
+        response = `Agentic capability evolution requires the addition of a 'reasoning_path' schema to the training dataset and 'Thought' token integration in tokenizer orchestration.`;
         suggestionType = 'agentic';
       } else if (coopMode) {
-        response = `That's a great question! Before I give you the answer, what do you think would happen if we increased the learning rate to 1e-3 in this context?`;
+        response = `Current observation: Analysis suggests that an increase in learning rate to 1e-3 may impact stability. Provide justification for this parameter adjustment.`;
+      } else if (isAbstract) {
+        response = "Not enough evidence in provided context for specific runtime optimization. Defaulting to baseline architectural guidelines.";
       } else {
-        response += "I recommend checking your gradient norms. If they are exploding, a lower learning rate or gradient clipping might be necessary.";
+        response += "Observation of gradient norms indicates potential instability. Lower learning rate or gradient clipping implementation recommended for loss parity.";
         suggestionType = 'lr-fix';
       }
       
@@ -198,7 +238,7 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
       }]);
       setIsTyping(false);
     }, 1500);
-  }, [selectedPersona, activeTab, vramUsage, coopMode]);
+  }, [selectedPersona, activeTab, vramPercentage, coopMode, currentVram]);
 
   const [trainWithHelixAi, setTrainWithHelixAi] = useState(false);
   const [selectedCoach, setSelectedCoach] = useState<CoachId>('prime');
@@ -213,6 +253,16 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
   const [isCuriosityModalOpen, setIsCuriosityModalOpen] = useState(false);
   
   const [agiState, setAgiState] = useState<any>(null);
+  const [fileContents, setFileContents] = useState<Record<string, string>>({
+    'model.py': MODEL_PY_CODE,
+    'train.py': TRAIN_PY_CODE,
+    'agent.py': AGI_AGENT_PY,
+    'tools.py': AGI_TOOLS_PY,
+    'agent_config.yaml': AGI_CONFIG_YAML,
+    'training.jsonl': DATASET_JSONL,
+    'README.md': AGI_README_MD,
+    'training_config.yaml': CONFIG_YAML,
+  });
   const ws = useRef<WebSocket | null>(null);
 
   const { 
@@ -228,6 +278,14 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
         const data = JSON.parse(event.data);
         if (data.type === 'STATE_UPDATE') {
           setAgiState(data.state);
+        } else if (data.type === 'TRAINING_METRICS') {
+          if (data.projectId === currentProjectId || !data.projectId) {
+            setMetrics(prev => [...prev, data.metrics].slice(-60));
+            if (data.metrics.step) {
+               // Assuming 1000 steps is a typical goal for a small LoRA
+               setProgress(Math.min(99, (data.metrics.step / 1000) * 100));
+            }
+          }
         }
       } catch (err) {
         console.error("Websocket parse error", err);
@@ -513,10 +571,22 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
     }
   }, [currentProjectId]);
 
-  const handleFileEdit = (fileName: string, isEdited: boolean) => {
+  const handleFileEdit = (fileName: string, val: string) => {
+    setFileContents(prev => ({ ...prev, [fileName]: val }));
     setEditedFiles(prev => {
       const next = new Set(prev);
-      if (isEdited) next.add(fileName);
+      // Compare with initial constant to determine if "edited"
+      const constants: any = {
+        'model.py': MODEL_PY_CODE,
+        'train.py': TRAIN_PY_CODE,
+        'agent.py': AGI_AGENT_PY,
+        'tools.py': AGI_TOOLS_PY,
+        'agent_config.yaml': AGI_CONFIG_YAML,
+        'training.jsonl': DATASET_JSONL,
+        'README.md': AGI_README_MD,
+        'training_config.yaml': CONFIG_YAML,
+      };
+      if (val !== constants[fileName]) next.add(fileName);
       else next.delete(fileName);
       return next;
     });
@@ -552,16 +622,6 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
     // For now we'll just update local state to reflect UI changes
   };
 
-  // Advanced LoRA Configuration State
-  const [loraConfig, setLoraConfig] = useState({
-    rank: 16,
-    alpha: 32,
-    dropout: 0.05,
-    learningRate: 1.5e-4,
-    targetModules: ['q_proj', 'v_proj'],
-    precision: 'bf16' as 'fp16' | 'bf16' | 'fp32',
-    batchSize: 4
-  });
   const [isLoraExpanded, setIsLoraExpanded] = useState(true);
 
   const applyPreset = (preset: 'balanced' | 'deep' | 'light' | 'experimental') => {
@@ -661,23 +721,6 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
       setMetrics([]);
     }
   }, [currentProjectId, currentProject]);
-
-  // VRAM Estimator logic
-  const calculateEstimatedVRAM = () => {
-    let baseModelSize = 14.2; 
-    if (currentProject.model?.includes('70B')) baseModelSize = 42.5;
-    if (currentProject.model?.includes('Phi')) baseModelSize = 4.2;
-    
-    const rankFactor = (loraConfig.rank / 64) * (loraConfig.targetModules.length / 4) * 0.8;
-    const batchFactor = loraConfig.batchSize * 0.4;
-    const precisionFactor = loraConfig.precision === 'fp32' ? 2.0 : 1.0;
-    
-    return (baseModelSize + rankFactor + batchFactor) * precisionFactor;
-  };
-
-  const estimatedVramUsed = calculateEstimatedVRAM();
-  const vramMax = currentProject.model?.includes('70B') ? 80 * 8 : 80; 
-  const vramPercentage = (estimatedVramUsed / vramMax) * 100;
 
   useEffect(() => {
     let interval: any;
@@ -780,28 +823,40 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
     return () => window.removeEventListener('studio-action', handleStudioAction);
   }, []);
 
-  const handleStartTraining = () => {
+  const handleStartTraining = async () => {
     if (!isTraining) {
-      // Synchronized Boot Sequence
-      window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[32m[SYSTEM]\x1b[0m Initializing Helix-Kernel v2.5.0...\r\n' }));
+      setIsTraining(true);
+      setMetrics([]);
+      setProgress(0);
       
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('terminal-output', { detail: `\x1b[36m[SYSTEM]\x1b[0m Allocating resources for model: ${currentProject.model}...\r\n` }));
-      }, 400);
-
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[34m[SYSTEM]\x1b[0m Peer-to-peer NVLink mesh established across 8 nodes.\r\n' }));
-      }, 800);
-
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[32m[HELIX]\x1b[0m Baseline metrics recorded. Commencing Sharded Gradient Descent.\r\n' }));
-        setIsTraining(true);
-        setMetrics([]);
-        setProgress(0);
-      }, 1400);
+      window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[32m[SYSTEM]\x1b[0m Initializing local trainer...\r\n' }));
+      
+      try {
+        const res = await fetch('/api/training/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: currentProjectId,
+            config: loraConfig,
+            code: fileContents['train.py'] || TRAIN_PY_CODE
+          })
+        });
+        
+        if (!res.ok) {
+           const data = await res.json();
+           throw new Error(data.error || "Training start failed");
+        }
+        
+        setToast({ message: "Training Session Initialized", type: 'success' });
+      } catch (err: any) {
+        setIsTraining(false);
+        setToast({ message: `Error: ${err.message}`, type: 'warn' });
+        window.dispatchEvent(new CustomEvent('terminal-output', { detail: `\x1b[31m[ERROR]\x1b[0m ${err.message}\r\n` }));
+      }
     } else {
       setIsTraining(false);
-      window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[31m[HALT]\x1b[0m User interrupt received. Safe-point checkpointing saved.\r\n' }));
+      fetch('/api/training/stop', { method: 'POST' }).catch(console.error);
+      window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[31m[HALT]\x1b[0m User interrupt received.\r\n' }));
     }
   };
 
@@ -819,6 +874,36 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
         setActiveTab('training.jsonl');
         setToast({ message: "Switched to dataset view to add reasoning paths.", type: 'info' });
         break;
+    }
+  };
+
+  const [isGeneratingData, setIsGeneratingData] = useState(false);
+  const handleGenerateSyntheticData = async () => {
+    setIsGeneratingData(true);
+    setToast({ message: "Generating synthetic dataset...", type: 'info' });
+    
+    try {
+      const res = await fetch('/api/training/synthetic-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: `Instruct current model (${currentProject.model}) to follow architectural guidelines for ${currentProject.name}`,
+          count: 15
+        })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setFileContents(prev => ({ ...prev, 'training.jsonl': data.data }));
+        setEditedFiles(prev => new Set([...prev, 'training.jsonl']));
+        setActiveTab('training.jsonl');
+        setToast({ message: "Synthetic dataset injected into training.jsonl", type: 'success' });
+        evolveHelix(10, { lastInteraction: new Date().toISOString() });
+      }
+    } catch (err) {
+      setToast({ message: "Data generation failed", type: 'warn' });
+    } finally {
+      setIsGeneratingData(false);
     }
   };
 
@@ -842,6 +927,7 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
         applyPreset('light');
         setToast({ message: "Recipe Applied: Synthetic Data Gen Engine", type: 'info' });
         window.dispatchEvent(new CustomEvent('terminal-output', { detail: '\x1b[35m[RECIPE]\x1b[0m Initializing Synthetic Data Generation engine...\r\n' }));
+        handleGenerateSyntheticData();
         break;
     }
     
@@ -883,7 +969,11 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
                  <CommandItem label="Project: Switch Workspace" icon={ListTree} onClick={() => { setActiveSidebar('projects'); setShowCommandPalette(false); }} />
                  <CommandItem label="Train: New Fine-Tuning Job" shortcut="Ctrl+Shift+T" icon={Zap} color="text-[#00FF9F]" />
                  <CommandItem label="Helix: Optimize Hyperparameters" icon={Sliders} />
-                 <CommandItem label="Helix: Generate Synthetic Dataset" icon={Database} />
+            <CommandItem 
+              label="Helix: Generate Synthetic Dataset" 
+              icon={Database} 
+              onClick={() => { handleGenerateSyntheticData(); setShowCommandPalette(false); }}
+            />
                  <CommandItem label="Cluster: Flush VRAM Cache" icon={RotateCcw} />
                  <CommandItem label="Export: Model Weights to HF" icon={Share2} />
               </div>
@@ -1165,16 +1255,16 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
           )}
           
           <div className="flex-1 relative overflow-hidden">
-            {activeTab === 'model.py' && <UnifiedEditor code={MODEL_PY_CODE} lang="python" onValueChange={(val) => handleFileEdit('model.py', val !== MODEL_PY_CODE)} />}
-            {activeTab === 'train.py' && <UnifiedEditor code={TRAIN_PY_CODE} lang="python" onValueChange={(val) => handleFileEdit('train.py', val !== TRAIN_PY_CODE)} />}
-            {activeTab === 'agent.py' && <UnifiedEditor code={AGI_AGENT_PY} lang="python" onValueChange={(val) => handleFileEdit('agent.py', val !== AGI_AGENT_PY)} />}
-            {activeTab === 'tools.py' && <UnifiedEditor code={AGI_TOOLS_PY} lang="python" onValueChange={(val) => handleFileEdit('tools.py', val !== AGI_TOOLS_PY)} />}
-            {activeTab === 'agent_config.yaml' && <UnifiedEditor code={AGI_CONFIG_YAML} lang="yaml" onValueChange={(val) => handleFileEdit('agent_config.yaml', val !== AGI_CONFIG_YAML)} />}
-            {activeTab === 'training.jsonl' && <UnifiedEditor code={DATASET_JSONL} lang="json" onValueChange={(val) => handleFileEdit('training.jsonl', val !== DATASET_JSONL)} />}
-            {activeTab === 'README.md' && <UnifiedEditor code={AGI_README_MD} lang="json" onValueChange={(val) => handleFileEdit('README.md', val !== AGI_README_MD)} />}
+            {activeTab === 'model.py' && <UnifiedEditor code={fileContents['model.py']} lang="python" onValueChange={(val) => handleFileEdit('model.py', val)} />}
+            {activeTab === 'train.py' && <UnifiedEditor code={fileContents['train.py']} lang="python" onValueChange={(val) => handleFileEdit('train.py', val)} />}
+            {activeTab === 'agent.py' && <UnifiedEditor code={fileContents['agent.py']} lang="python" onValueChange={(val) => handleFileEdit('agent.py', val)} />}
+            {activeTab === 'tools.py' && <UnifiedEditor code={fileContents['tools.py']} lang="python" onValueChange={(val) => handleFileEdit('tools.py', val)} />}
+            {activeTab === 'agent_config.yaml' && <UnifiedEditor code={fileContents['agent_config.yaml']} lang="yaml" onValueChange={(val) => handleFileEdit('agent_config.yaml', val)} />}
+            {activeTab === 'training.jsonl' && <UnifiedEditor code={fileContents['training.jsonl']} lang="json" onValueChange={(val) => handleFileEdit('training.jsonl', val)} />}
+            {activeTab === 'README.md' && <UnifiedEditor code={fileContents['README.md']} lang="json" onValueChange={(val) => handleFileEdit('README.md', val)} />}
             {activeTab === 'training_config.yaml' && (
               <div className="h-full">
-                <UnifiedEditor code={CONFIG_YAML} lang="yaml" onValueChange={(val) => handleFileEdit('training_config.yaml', val !== CONFIG_YAML)} />
+                <UnifiedEditor code={fileContents['training_config.yaml']} lang="yaml" onValueChange={(val) => handleFileEdit('training_config.yaml', val)} />
                 {/* Specific Hover Tooltip Logic */}
                 <div className="absolute top-[138px] left-[130px] w-[60px] h-[16px] border border-dashed border-[#00FF9F]/20 cursor-help group/lr z-20">
                    <div className="absolute bottom-full left-0 mb-3 w-64 bg-[#252526] text-zinc-200 text-[11px] p-4 rounded-xl shadow-2xl opacity-0 group-hover/lr:opacity-100 transition-all scale-95 group-hover/lr:scale-100 pointer-events-none z-30 font-sans normal-case leading-relaxed border border-zinc-700 shadow-[#00FF9F]/5 backdrop-blur-md">
@@ -1336,7 +1426,7 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
                        </div>
                     </div>
                     <div className="w-px h-6 bg-zinc-800"></div>
-                    <MetricMini label="VRAM GLOBAL" value={`${isTraining ? Math.round(metrics[metrics.length-1]?.vram || 0) : '0'} / 640 GB`} />
+                    <MetricMini label="VRAM GLOBAL" value={`${currentVram.toFixed(1)} / ${vramMax} GB`} />
                     <div className="w-px h-6 bg-zinc-800"></div>
                     <div className="flex flex-col">
                        <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">PASS@1 SIM</span>
@@ -1499,6 +1589,8 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
                 isEventMode={isEventModeActive}
                 onEventModeToggle={() => setIsEventModeActive(!isEventModeActive)}
                 onOpenCuriosity={() => setIsCuriosityModalOpen(true)}
+                onGenerateData={handleGenerateSyntheticData}
+                isGeneratingData={isGeneratingData}
               />
             </div>
         ) : rightSidebarTab === 'security' ? (
@@ -1741,7 +1833,7 @@ export function CodeTrainingStudio({ projects, selectedProjectId, onProjectCreat
                             vramPercentage > 90 ? "text-red-500" : 
                             vramPercentage > 75 ? "text-yellow-500" : "text-[#00FF9F]"
                           )}>
-                             {estimatedVramUsed.toFixed(1)}GB
+                             {currentVram.toFixed(1)}GB
                           </span>
                        </div>
                        <div className="text-right">
@@ -3081,11 +3173,13 @@ function ExportProjectModal({ project, onClose }: { project: Project, onClose: (
     try {
       const zip = new JSZip();
       
-      // Add a README
-      zip.file("README.md", `# ${project.name} - Helix Bundle\n\nGenerated by Helix AGI-OS Cortical Dashboard.\n\n## Quick Start\n1. Ensure Node.js is installed.\n2. Run \`start.bat\` (Windows) or \`npm install && npm run dev\` (Unix).\n3. Access the dashboard at http://localhost:3000\n`);
+      if (option === 'full' || option === 'config') {
+        zip.file("README.md", `# ${project.name} - Helix Bundle\n\nGenerated by Helix AGI-OS Cortical Dashboard.\n\n## Quick Start\n1. Ensure Node.js is installed.\n2. Run \`start.bat\` (Windows) or \`npm install && npm run dev\` (Unix).\n3. Access the dashboard at http://localhost:3000\n`);
+      }
       
-      // Add start.bat
-      zip.file("start.bat", `@echo off\necho Initializing ${project.name}...\ncall npm install\ncall npm run dev\npause`);
+      if (option === 'full') {
+        zip.file("start.bat", `@echo off\necho Initializing ${project.name}...\ncall npm install\ncall npm run dev\npause`);
+      }
 
       // Mock some files based on project template
       if (project.fileTree) {
@@ -3093,7 +3187,31 @@ function ExportProjectModal({ project, onClose }: { project: Project, onClose: (
           nodes.forEach(node => {
             const fullPath = path ? `${path}/${node.name}` : node.name;
             if (node.type === 'file') {
-              zip.file(fullPath, `// Helix Source: ${node.name}\n// Generated for ${project.model}\n\nconsole.log("Helix module ${node.name} active.");`);
+              let include = false;
+              
+              if (option === 'full') {
+                include = true;
+              } else if (option === 'checkpoints') {
+                if (fullPath.includes('checkpoints') || fullPath.endsWith('.bin') || fullPath.endsWith('.safetensors') || fullPath.endsWith('.pt')) {
+                  include = true;
+                }
+              } else if (option === 'config') {
+                if (fullPath.endsWith('.json') || fullPath.endsWith('.md') || fullPath.endsWith('.yaml') || fullPath.includes('config') || fullPath.includes('data')) {
+                  include = true;
+                }
+              }
+
+              if (include) {
+                let content = `// Helix Source: ${node.name}\n// Generated for ${project.model}\n\n`;
+                if (fullPath.endsWith('.json')) {
+                   content = `{\n  "module": "${node.name}",\n  "model": "${project.model}"\n}`;
+                } else if (option === 'checkpoints' || fullPath.endsWith('.bin') || fullPath.endsWith('.safetensors')) {
+                   content = `[MOCK BINARY DATA FOR ${node.name}]`;
+                } else {
+                   content += `console.log("Helix module ${node.name} active.");`;
+                }
+                zip.file(fullPath, content);
+              }
             } else if (node.type === 'folder' && node.children) {
               addNodes(node.children, fullPath);
             }
@@ -3109,10 +3227,12 @@ function ExportProjectModal({ project, onClose }: { project: Project, onClose: (
       const content = await zip.generateAsync({ type: "blob" });
       setProgress(90);
       
+      const suffix = option === 'checkpoints' ? '-checkpoints' : option === 'config' ? '-config' : '-helix-bundle';
+      
       const url = window.URL.createObjectURL(content);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${project.name.toLowerCase().replace(/\s+/g, '-')}-helix-bundle.zip`;
+      link.download = `${project.name.toLowerCase().replace(/\s+/g, '-')}${suffix}.zip`;
       link.click();
       window.URL.revokeObjectURL(url);
       
@@ -3495,25 +3615,29 @@ class CodeFineTuneModule(nn.Module):
 # Initializing Llama-3 adapter layer...
 # Rank: 32, Alpha: 64`;
 
-const TRAIN_PY_CODE = `import os
-from helix.trainer import HelixTrainer
-from helix.utils import load_dataset_distributed
+const TRAIN_PY_CODE = `import json, time, random, sys
 
-def run_fine_tune():
-    cluster = os.getenv("HX_CLUSTER_ID", "default")
-    config = "configs/training_config.yaml"
+print("Helix Training Session Initialized - Ring-3 Pluripotent Worker Online")
+
+# Advanced Telemetry Bootstrap
+time.sleep(0.5)
+print("\\x1b[32m[SYSTEM]\\x1b[0m Allocating distributed VRAM shards...")
+time.sleep(0.5)
+print("\\x1b[32m[SYSTEM]\\x1b[0m Peer-to-peer NVLink mesh established across 8 nodes.")
+
+for step in range(1, 1001):
+    # Simulated metrics with realistic decay
+    loss = 2.5 * (0.998 ** step) + random.uniform(-0.02, 0.02)
+    acc = min(99.4, 45 + (54 * (1 - 0.997 ** step)) + random.uniform(-0.1, 0.1))
+    vram = 4.2 + (step * 0.0001) + random.uniform(0, 0.05)
     
-    print(f"Launching fine-tuning on cluster: {cluster}")
+    if step % 10 == 0:
+        print(f"STEP {step:04d} | loss: {loss:.4f} | accuracy: {acc:.2f}% | vram: {vram:.2f} GB")
+        sys.stdout.flush()
     
-    dataset = load_dataset_distributed("data/training.jsonl")
-    
-    trainer = HelixTrainer(
-        model_path="llama-3-8b",
-        config=config,
-        dataset=dataset
-    )
-    
-    trainer.train()`;
+    time.sleep(0.1)  # High-speed simulation
+
+print("\\x1b[32m[COMPLETE]\\x1b[0m Training cycle finished successfully.")`;
 
 const CONFIG_YAML = `training_args:
   per_device_train_batch_size: 16
@@ -3818,25 +3942,30 @@ function AICoAssistant({
       )}
 
       {/* Persona Selector Bar */}
-      <div className="p-2 bg-black/20 border-b border-zinc-900 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-         {PERSONAS.map(p => (
-           <button
-             key={p.id}
-             onClick={() => onPersonaChange(p.id)}
-             className={cn(
-               "flex items-center gap-1.5 px-3 py-2 rounded-xl border transition-all shrink-0 group",
-               selectedPersona === p.id 
-                 ? "bg-teal-500/10 border-teal-500/40 text-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.1)]" 
-                 : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-             )}
-           >
-             <div className={cn(
-               "w-1.5 h-1.5 rounded-full",
-               selectedPersona === p.id ? "bg-teal-400 animate-pulse" : "bg-zinc-700"
-             )} />
-             <span className="text-[9px] font-black uppercase tracking-widest">{p.name}</span>
-           </button>
-         ))}
+      <div className="p-2 bg-black/20 border-b border-zinc-900 flex items-center justify-between overflow-hidden">
+         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+          {PERSONAS.map(p => (
+            <button
+              key={p.id}
+              onClick={() => onPersonaChange(p.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-xl border transition-all shrink-0 group",
+                selectedPersona === p.id 
+                  ? "bg-teal-500/10 border-teal-500/40 text-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.1)]" 
+                  : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+              )}
+            >
+              <div className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                selectedPersona === p.id ? "bg-teal-400 animate-pulse" : "bg-zinc-700"
+              )} />
+              <span className="text-[9px] font-black uppercase tracking-widest">{p.name}</span>
+            </button>
+          ))}
+         </div>
+         <div className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-lg shrink-0">
+            <span className="text-[8px] font-mono font-black text-teal-400">MODE=ENGINEERING</span>
+         </div>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-6 custom-scrollbar">
@@ -4691,36 +4820,52 @@ function TrainingCoachPanel({
   events,
   isEventMode,
   onEventModeToggle,
-  onOpenCuriosity
+  onOpenCuriosity,
+  onGenerateData,
+  isGeneratingData
 }: {
   selectedCoach: CoachId,
   onCoachChange: (id: CoachId) => void,
   events: UpcomingEvent[],
   isEventMode: boolean,
   onEventModeToggle: () => void,
-  onOpenCuriosity: () => void
+  onOpenCuriosity: () => void,
+  onGenerateData?: () => void,
+  isGeneratingData?: boolean
 }) {
   return (
     <div className="p-4 space-y-6">
       {/* Quick Actions */}
-      <div className="p-4 bg-gradient-to-br from-teal-500/10 via-indigo-500/5 to-purple-500/10 border border-teal-500/20 rounded-2xl">
-         <div className="flex items-center justify-between mb-4">
+      <div className="p-4 bg-gradient-to-br from-teal-500/10 via-indigo-500/5 to-purple-500/10 border border-teal-500/20 rounded-2xl flex flex-col gap-2">
+         <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
                <Sparkles className="w-4 h-4 text-[#00FF9F]" />
                <span className="text-[10px] font-black text-white uppercase tracking-widest">Autonomous Training</span>
             </div>
             <div className="px-2 py-0.5 bg-[#00FF9F] text-zinc-950 text-[7px] font-black rounded uppercase tracking-widest animate-pulse">V2.9 Ready</div>
          </div>
-         <p className="text-[10px] text-zinc-400 mb-4 leading-relaxed">
+         <p className="text-[10px] text-zinc-400 mb-2 leading-relaxed">
             Unleash Helix's curiosity to autonomously research, plan, and execute project evolutions.
          </p>
-         <button 
-           onClick={onOpenCuriosity}
-           className="w-full py-3 bg-[#00FF9F]/10 border border-[#00FF9F]/40 hover:bg-[#00FF9F]/20 text-[#00FF9F] rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] group"
-         >
-           <Brain className="w-4 h-4 group-hover:animate-bounce" />
-           <span className="text-xs font-black uppercase tracking-[0.1em]">Curiosity Mode ✨</span>
-         </button>
+         
+         <div className="grid grid-cols-1 gap-2 mt-2">
+           <button 
+             onClick={onOpenCuriosity}
+             className="w-full py-3 bg-[#00FF9F]/10 border border-[#00FF9F]/40 hover:bg-[#00FF9F]/20 text-[#00FF9F] rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] group"
+           >
+             <Brain className="w-4 h-4 group-hover:animate-bounce" />
+             <span className="text-xs font-black uppercase tracking-[0.1em]">Curiosity Mode ✨</span>
+           </button>
+
+           <button 
+             onClick={onGenerateData}
+             disabled={isGeneratingData}
+             className="w-full py-3 bg-blue-500/10 border border-blue-500/40 hover:bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] group disabled:opacity-50"
+           >
+             {isGeneratingData ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4 group-hover:rotate-12 transition-transform" />}
+             <span className="text-xs font-black uppercase tracking-[0.1em]">Generate Dataset 💠</span>
+           </button>
+         </div>
       </div>
 
       <div className="flex items-center justify-between">
