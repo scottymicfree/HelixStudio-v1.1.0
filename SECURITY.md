@@ -11,7 +11,7 @@ We currently support the following versions of HelixStudio AI:
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within this project, please send an e-mail to **security@helixstudio.ai** (placeholder). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within this project, please send an e-mail to **security@helixstudio.ai** (randy@lucycoreai.com or scottymicfree@gmail.com). All security vulnerabilities will be promptly addressed.
 
 Please include:
 - A description of the vulnerability.
