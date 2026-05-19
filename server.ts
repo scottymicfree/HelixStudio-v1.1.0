@@ -707,6 +707,137 @@ async function startServer() {
     }
   });
 
+  // Local Training Backend
+  let activeTrainingProcess: any = null;
+
+  function broadcastMetrics(metrics: any, projectId?: string) {
+    if (!wss) return;
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'TRAINING_METRICS', metrics, projectId }));
+      }
+    });
+  }
+
+  app.post('/api/training/start', async (req, res) => {
+    try {
+      const { config, code, projectId } = req.body;
+      
+      const tempDir = path.join(process.cwd(), 'temp', projectId || 'default');
+      await fs.ensureDir(tempDir);
+      await fs.writeFile(path.join(tempDir, 'train.py'), code || '# Empty training script');
+
+      if (activeTrainingProcess) {
+        activeTrainingProcess.kill();
+      }
+
+      state.terminalLogs.push(`\x1b[32m[TRAINER]\x1b[0m Starting local training for project ${projectId}...`);
+      broadcastState(state);
+
+      // Simple metric parsing from stdout
+      const parseMetrics = (line: string) => {
+        // Look for patterns like "loss: 0.123" or "accuracy: 95.5"
+        const lossMatch = line.match(/loss:?\s*([\d.]+)/i);
+        const accMatch = line.match(/acc(?:uracy)?:?\s*([\d.]+)/i);
+        const stepMatch = line.match(/step:?\s*(\d+)/i);
+        const vramMatch = line.match(/vram:?\s*([\d.]+)/i);
+        
+        if (lossMatch || accMatch || stepMatch || vramMatch) {
+          return {
+            step: stepMatch ? parseInt(stepMatch[1]) : undefined,
+            loss: lossMatch ? parseFloat(lossMatch[1]) : undefined,
+            accuracy: accMatch ? parseFloat(accMatch[1]) : undefined,
+            vram: vramMatch ? parseFloat(vramMatch[1]) : undefined,
+            timestamp: new Date().toISOString()
+          };
+        }
+        return null;
+      };
+
+      // Use python3 if available, or fallback to python
+      // Check if python3 exists, otherwise use python
+      const pythonCmd = 'python3'; 
+      const python = spawn(pythonCmd, ['train.py'], { cwd: tempDir });
+      activeTrainingProcess = python;
+
+      python.stdout.on('data', (data) => {
+        const line = data.toString();
+        // Add to terminal logs (capped)
+        state.terminalLogs.push(`\x1b[36m[TRAIN]\x1b[0m ${line.trim()}`);
+        if (state.terminalLogs.length > 200) state.terminalLogs.shift();
+
+        const metrics = parseMetrics(line);
+        if (metrics) {
+          broadcastMetrics(metrics, projectId);
+        }
+        broadcastState(state);
+      });
+
+      python.stderr.on('data', (data) => {
+        const errorLine = data.toString();
+        state.terminalLogs.push(`\x1b[31m[TRAINER ERROR]\x1b[0m ${errorLine.trim()}`);
+        if (state.terminalLogs.length > 200) state.terminalLogs.shift();
+        broadcastState(state);
+      });
+
+      python.on('close', (code) => {
+        state.terminalLogs.push(`\x1b[32m[TRAINER]\x1b[0m Training process exited with code ${code}`);
+        activeTrainingProcess = null;
+        broadcastState(state);
+      });
+
+      res.json({ success: true, message: "Training started" });
+    } catch (err: any) {
+      console.error("Training start failed", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/training/stop', (req, res) => {
+    if (activeTrainingProcess) {
+      activeTrainingProcess.kill();
+      activeTrainingProcess = null;
+      state.terminalLogs.push(`\x1b[31m[TRAINER]\x1b[0m Training manually terminated.`);
+      broadcastState(state);
+      return res.json({ success: true });
+    }
+    res.json({ success: false, message: "No active training process" });
+  });
+
+  app.post('/api/training/synthetic-data', async (req, res) => {
+    try {
+      const { prompt, count = 50 } = req.body;
+      
+      // Simulate synthetic data generation
+      const samples = [];
+      const instructions = [
+        "Explain the modular code pattern.",
+        "Refactor this Llama implementation.",
+        "How do I optimize LoRA ranks?",
+        "Explain the benefit of Flash Attention.",
+        "Create a synthetic data generation script."
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const inst = instructions[Math.floor(Math.random() * instructions.length)];
+        samples.push({
+          instruction: `${inst} (Variant ${i + 1}) - ${prompt || ''}`,
+          context: `Synthetically generated context for deep-reasoning step ${i}`,
+          response: `Based on the Helix-OS architectural guidelines, the optimal approach for variant ${i} involves recursive self-correction and efficient memory allocation in Ring 3.`
+        });
+      }
+
+      const jsonl = samples.map(d => JSON.stringify(d)).join('\n');
+      
+      state.terminalLogs.push(`\x1b[35m[SYNTH-GEN]\x1b[0m Generated ${count} high-quality synthetic JSONL records.`);
+      broadcastState(state);
+      
+      res.json({ success: true, data: jsonl, count });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post("/api/helix/clear-swarm", async (req, res) => {
     try {
       state.helixCore.swarm = { agents: [] };
@@ -881,6 +1012,11 @@ async function startServer() {
 
       instance.logs.push(`[EXEC] JIT Compiling ${instance.specialty} module...`);
       const buffer = Buffer.from(instance.wasmBuffer, 'base64');
+      
+      if (!WebAssembly.validate(buffer)) {
+        throw new Error("WASM binary failed static structural validation. Payload rejected.");
+      }
+
       const wasmModule = await WebAssembly.compile(buffer);
       const wasmInstance = await WebAssembly.instantiate(wasmModule, {});
       
